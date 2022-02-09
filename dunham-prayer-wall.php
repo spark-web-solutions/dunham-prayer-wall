@@ -12,7 +12,7 @@
  * Author URI: https://dunhamandcompany.com/
  * Text Domain: dunham-prayer-wall
  * Domain Path: /languages
- * Licence: Copyright Dunham and Company. Unauthorised copying or distribution is prohibited.
+ * Licence: Copyright Dunham and Company. Unauthorised distribution of this software, with or without modifications is expressly prohibited.
  */
 
 // If this file is called directly, abort.
