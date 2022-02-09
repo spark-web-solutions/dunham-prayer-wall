@@ -1,0 +1,170 @@
+/* Set some defaults - note that once the plugin is configured these will be dynamically overwritten on the page */
+:root {
+    --prayer-request-bg-colour-1: #FFF;
+    --prayer-request-text-colour-1: #000;
+    --prayer-request-bg-colour-2: #888;
+    --prayer-request-text-colour-2: #000;
+    --prayer-request-bg-colour-3: #000;
+    --prayer-request-text-colour-3: #FFF;
+}
+
+/* Misc helper classes */
+.text-left {text-align: left;}
+.text-center {text-align: center;}
+.text-right {text-align: right;}
+
+/* Unopened CSS Modal */
+.dunham_prayer_modal {
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: -100%;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    -webkit-transition: top 0s .5s, opacity .5s 0s;
+    transition: top 0s .5s, opacity .5s 0s;
+    z-index: 999;
+}
+
+/* Opened CSS Modal */
+.dunham_prayer_modal.active {
+    top: 0;
+    opacity: 1;
+    -webkit-transition: none;
+    transition: none;
+}
+
+.dunham_prayer_modal_content {
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: scroll;
+    position: relative;
+    padding: 1.5em;
+    opacity: 0;
+    background-color: white;
+    -webkit-transition: opacity .5s;
+    transition: opacity .5s;
+    z-index: 1001;
+}
+
+/* CSS Modal content when opened */
+.dunham_prayer_modal.active .dunham_prayer_modal_content {
+    opacity: 1;
+}
+
+/* Style for small x link inside dialog modal */
+.dunham_prayer_modal .dunham_prayer_modal_close {
+    text-decoration: none;
+    position: absolute;
+    font-size: 20px;
+    cursor: pointer;
+    right: 0.5rem;
+    top: 0.5rem;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    line-height: 1.75;
+    text-align: center;
+}
+
+/* Veil that covers page when CSS Modal is open */
+.dunham_prayer_modal .veil {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: rgba(0,0,0,.7);
+    content: "";
+    cursor: pointer;
+    visibility: hidden;
+    -webkit-transition: all .5s;
+    transition: all .5s;
+    z-index: 1000;
+}
+
+/* Veil style when CSS Modal is open */
+.dunham_prayer_modal.active .veil {
+    visibility: visible;
+}
+
+/* Animate veil "x"  when CSS Modal is open */
+.dunham_prayer_modal.active .veil::before, .dunham_prayer_modal.active .veil::after {
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.dunham_prayer_modal.active .veil::after {
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}
+
+@media only screen and (max-width: 800px) {
+    .dunham_prayer_modal {
+        left: 0;
+        width: 100%;
+    }
+}
+
+/* Prayer Wall */
+/* .prayer-submit-form label {display: block;} */
+.prayer-submit-form :is(input, select, textarea) {width: 100%; margin-bottom: 1.25rem;}
+.prayer-wrapper {padding: 0 0.9375rem;}
+.prayer-grid {margin: 0 -0.9375rem;}
+.prayer-grid-item {width: 100%; margin-bottom: 2rem; min-height: 69px; padding: 0 0.9375rem;}
+.prayer-grid-item .content {border-radius:0.2rem; padding: 0.9375rem; background-color: white; box-shadow: 1px 1px 0.3rem rgba(0,0,0,0.2);}
+
+.prayer-grid-item .author {clear: right;}
+
+.prayer-grid-item.request img {margin-bottom: 1rem;}
+.prayer-grid-item.request-1 .content {background-color: var(--prayer-request-bg-colour-1); color: var(--prayer-request-text-colour-1);}
+.prayer-grid-item.request-2 .content {background-color: var(--prayer-request-bg-colour-2); color: var(--prayer-request-text-colour-2);}
+.prayer-grid-item.request-3 .content {background-color: var(--prayer-request-bg-colour-3); color: var(--prayer-request-text-colour-3);}
+.prayer-grid-item.request .content h2 {font-weight:700;}
+.prayer-grid-item.request-1 .content h2 a {color: var(--prayer-request-text-colour-1);}
+.prayer-grid-item.request-2 .content h2 a {color: var(--prayer-request-text-colour-2);}
+.prayer-grid-item.request-3 .content h2 a {color: var(--prayer-request-text-colour-3);}
+
+.prayer-grid-item.request .category {font-weight: normal; font-size: 0.8rem; background-color: #FFFFFF33; display: inline-block; padding: 0.25rem;}
+
+.prayer-grid-item.pray-cw .content {background-color:#303E48; color:#FFF;}
+
+.prayer-counter, .comment-counter {display: block; clear: right; float: right; text-align: right; font-size: 0.9rem; font-weight: bold; background-color: #FFFFFF33; color: #303e48; border: 1px solid #FFFFFF33; border-radius: 0.2rem; margin: 0 0 0.75rem 0.75rem; padding: 0.25rem; min-width: 3.5rem;}
+.prayer-counter {margin-bottom: 0.25rem;}
+.prayer-grid-item.request-1 .prayer-counter, .prayer-grid-item.request-1 .comment-counter {color: var(--prayer-request-text-colour-1);}
+.prayer-grid-item.request-2 .prayer-counter, .prayer-grid-item.request-2 .comment-counter {color: var(--prayer-request-text-colour-2);}
+.prayer-grid-item.request-3 .prayer-counter, .prayer-grid-item.request-3 .comment-counter {color: var(--prayer-request-text-colour-3);}
+
+.pray-cw-btn {font-weight: bold; margin:18px auto; width:90%; background-color: #e9962c; display:block; line-height: 20px;}
+    
+@media only screen and (min-width: 40em) {.prayer-grid .prayer-grid-item {width: 50%;}}
+@media only screen and (min-width: 55em) {.prayer-grid .prayer-grid-item {width: 33.3333%;}}
+@media only screen and (min-width: 75em) {.prayer-grid .prayer-grid-item {width: 25%;}}
+@media only screen and (min-width: 90em) {.prayer-grid .prayer-grid-item {width: 16.6666%;}}
+
+/* Individual Prayer Request */
+.single-prayer-wrapper {margin-left: 0.9375rem; margin-right: 0.9375rem;}
+@media only screen and (min-width: 55em) {
+	.single-prayer-wrapper {display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9375rem;}
+	.single-prayer-comment {display: grid; grid-template-columns: 96px auto; gap: 0.9375rem;}
+}
+
+/* Spinner @see https://codepen.io/supah/pen/BjYLdW */
+.prayer-spinner {animation: rotate 2s linear infinite; width: 1rem; height: 1rem;}
+.prayer-spinner .path {stroke: black; stroke-linecap: round; animation: dash 1.5s ease-in-out infinite;}
+.prayer-grid-item.request-1 .prayer-spinner .path {stroke: var(--prayer-request-text-colour-1);}
+.prayer-grid-item.request-2 .prayer-spinner .path {stroke: var(--prayer-request-text-colour-2);}
+.prayer-grid-item.request-3 .prayer-spinner .path {stroke: var(--prayer-request-text-colour-3);}
+
+@keyframes rotate {
+    100% {transform: rotate(360deg);}
+}
+@keyframes dash {
+	0% {stroke-dasharray: 1, 150; stroke-dashoffset: 0;}
+	50% {stroke-dasharray: 90, 150; stroke-dashoffset: -35;}
+	100% {stroke-dasharray: 90, 150; stroke-dashoffset: -124;}
+}
