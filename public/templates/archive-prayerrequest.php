@@ -11,6 +11,7 @@
  */
 
 get_header();
+$prayer_count = Dunham_Prayer_Wall_Admin::count_prayers();
 ?>
 <style>
 :root {
@@ -24,12 +25,13 @@ for ($c =1; $c <= 3; $c++) {
 }
 </style>
 <div class="<?php echo apply_filters('dunham_prayer_wall_archive_wrapper_class', 'prayer-wrapper'); ?>">
+    <p class="total-prayer-counter text-right"><?php printf(_n('%s prayer prayed', '%s prayers prayed', $prayer_count, 'dunham-prayer-wall'), number_format($prayer_count)); ?></p>
     <h1><?php post_type_archive_title(); ?></h1>
     <div class="<?php echo apply_filters('dunham_prayer_wall_archive_grid_class', 'prayer-grid'); ?>">
 		<div class="<?php echo apply_filters('dunham_prayer_wall_archive_grid_item_class', 'prayer-grid-item request request-1', null); ?>">
 			<div class="<?php echo apply_filters('dunham_prayer_wall_archive_grid_item_content_class', 'content'); ?>">
 				<p><?php _e('We\'d love to pray for you.', 'dunham-prayer-wall'); ?></p>
-				<p><a class="button dunham-submit-prayer-modal" href="#">Submit Prayer Request</a></p>
+				<p><a class="button dunham-submit-prayer-modal" href="#"><?php _e('Submit Prayer Request', 'dunham-prayer-wall'); ?></a></p>
 				<div class="dunham_prayer_modal" id="dunham_submit_prayer_modal">
 					<a href="#" class="veil"></a>
 					<div class="dunham_prayer_modal_content" id="dunham_submit_prayer_modal_content">

@@ -600,7 +600,7 @@ You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
 	 * AJAX handler when indicating you've prayed for a request
 	 * @since 1.0.0
 	 */
-	function ajax_pray() {
+	public function ajax_pray() {
 		$request_id = (int)$_POST['id'];
 		$request = get_post($request_id);
 		if (!$request instanceof WP_Post || 'prayerrequest' != $request->post_type) {
@@ -641,5 +641,16 @@ You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
 		}
 
 		wp_send_json_success(array('count' => $prayer_count));
+	}
+
+	/**
+	 * Count the total number of prayers
+	 * @since 1.0.0
+	 */
+	public static function count_prayers() {
+		global $wpdb;
+		$sql = 'SELECT SUM(CAST(pm.meta_value AS UNSIGNED)) FROM '.$wpdb->postmeta.' pm INNER JOIN '.$wpdb->posts.' p ON (p.ID = pm.post_id AND pm.meta_key = "_prayers") WHERE p.post_type = "prayerrequest"';
+		$count = $wpdb->get_var($sql);
+		return $count;
 	}
 }

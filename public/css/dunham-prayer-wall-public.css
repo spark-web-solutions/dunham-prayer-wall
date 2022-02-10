@@ -111,7 +111,7 @@
 }
 
 /* Prayer Wall */
-/* .prayer-submit-form label {display: block;} */
+.total-prayer-counter {padding: 1rem; background-color: var(--prayer-request-bg-colour-1); color: var(--prayer-request-text-colour-1); font-size: 1.25rem;}
 .prayer-submit-form :is(input, select, textarea) {width: 100%; margin-bottom: 1.25rem;}
 .prayer-wrapper {padding: 0 0.9375rem;}
 .prayer-grid {margin: 0 -0.9375rem;}
@@ -139,8 +139,6 @@
 .prayer-grid-item.request-2 .prayer-counter, .prayer-grid-item.request-2 .comment-counter {color: var(--prayer-request-text-colour-2);}
 .prayer-grid-item.request-3 .prayer-counter, .prayer-grid-item.request-3 .comment-counter {color: var(--prayer-request-text-colour-3);}
 
-.pray-cw-btn {font-weight: bold; margin:18px auto; width:90%; background-color: #e9962c; display:block; line-height: 20px;}
-    
 @media only screen and (min-width: 40em) {.prayer-grid .prayer-grid-item {width: 50%;}}
 @media only screen and (min-width: 55em) {.prayer-grid .prayer-grid-item {width: 33.3333%;}}
 @media only screen and (min-width: 75em) {.prayer-grid .prayer-grid-item {width: 25%;}}
