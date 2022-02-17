@@ -12,6 +12,9 @@
 
 get_header();
 
+$wall_location = Dunham_Prayer_Wall_Admin::get_setting('wall-location');
+$wall_url = is_numeric($wall_location) ? get_the_permalink($wall_location) : get_post_type_archive_link('prayerrequest');
+
 while (have_posts()) {
 	the_post();
 	/**
@@ -76,7 +79,7 @@ while (have_posts()) {
 	}
 	comment_form($form_args);
 ?>
-		<p class="text-right"><a href="<?php echo get_post_type_archive_link('prayerrequest'); ?>" class="button"><?php _e('Return to Prayer Page', 'dunham-prayer-wall'); ?></a></p>
+		<p class="text-right"><a href="<?php echo $wall_url; ?>" class="button"><?php _e('Return to Prayer Page', 'dunham-prayer-wall'); ?></a></p>
 	</div>
 </div>
 <?php

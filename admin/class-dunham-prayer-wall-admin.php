@@ -228,8 +228,8 @@ class Dunham_Prayer_Wall_Admin {
 										'type' => 'radio',
 										'args' => array(),
 										'choices' => array(
-												'auto' => 'Automatic Approval (not recommended)',
 												'manual' => 'Manual Approval',
+												'auto' => 'Automatic Approval (not recommended)',
 										),
 										'register_settings_args' => array(
 												'type' => 'string',
@@ -260,6 +260,20 @@ class Dunham_Prayer_Wall_Admin {
 						'wp_option' => 'dunham-prayer-wall-settings',
 						'callback' => false,
 						'fields' => array(
+								array(
+										'key' => 'dunham-prayer-wall-settings-wall-location',
+										'title' => __('Prayer Wall Location', 'dunham-prayer-wall'),
+										'type' => 'select',
+										/* translators: %s: shortcode that can be inserted into the page */
+										'instructions' => sprintf(__('The prayer wall can either be accessed via the default WordPress archive or a page containing the %s shortcode. If the page you want use is not in the list below, please check that it is published and includes the shortcode in the page content.', 'dunham-prayer-wall'), '<code>[dunham_prayer_wall]</code>'),
+										'args' => array(),
+										'choices' => self::get_wall_location_choices(),
+										'register_settings_args' => array(
+												'type' => 'string',
+												'sanitize_callback' => 'sanitize_text_field',
+												'default' => 'archive',
+										),
+								),
 								array(
 										'key' => 'dunham-prayer-wall-settings-colour1',
 										'title' => __('Colour 1', 'dunham-prayer-wall'),
@@ -375,6 +389,26 @@ You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
 						),
 				),
 		);
+	}
+
+	/**
+	 * Get the options for where to display the wall
+	 * @since 1.0.0
+	 */
+	private static function get_wall_location_choices() {
+		$choices = array(
+				'archive' => 'WordPress Archive ('.get_post_type_archive_link('prayerrequest').')',
+		);
+		$args = array(
+				'post_type' => 'page',
+				'posts_per_page' => -1,
+				's' => '[dunham_prayer_wall]',
+		);
+		$pages = get_posts($args);
+		foreach ($pages as $page) {
+			$choices[$page->ID] = $page->post_title.' ('.get_the_permalink($page).')';
+		}
+		return $choices;
 	}
 
 	/**

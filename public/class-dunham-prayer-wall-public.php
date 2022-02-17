@@ -95,6 +95,41 @@ class Dunham_Prayer_Wall_Public {
 	}
 
 	/**
+	 * Callback for [dunham_prayer_wall] shortcode
+	 * @since 1.0.0
+	 */
+	public function shortcode_dunham_prayer_wall() {
+		$args = array(
+				'post_type' => 'prayerrequest',
+		);
+		$query = new WP_Query($args);
+		$this->filter_prayer_request_archive_args($query);
+		$requests = $query->get_posts();
+		dunham_prayer_wall_locate_template('dunham-prayer-wall.php', array('requests' => $requests));
+		wp_reset_postdata();
+	}
+
+	/**
+	 * Filter WP_Query args to show all posts and set custom order
+	 * @param WP_Query $query
+	 * @since 1.0.0
+	 */
+	public function filter_prayer_request_archive_args(WP_Query $query) {
+		$query->set('nopaging', true);
+	}
+
+	/**
+	 * Hook into pre_get_posts filter to alter the query for prayer archive
+	 * @param WP_Query $query
+	 * @since 1.0.0
+	 */
+	public function pre_get_posts($query) {
+		if (is_post_type_archive('prayerrequest')) {
+			$this->filter_prayer_request_archive_args($query);
+		}
+	}
+
+	/**
 	 * Retrieve the list of available prayer categories
 	 * @return WP_Term[]|number|WP_Error
 	 * @since 1.0.0

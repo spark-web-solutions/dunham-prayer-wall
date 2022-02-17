@@ -164,6 +164,9 @@ class Dunham_Prayer_Wall {
 
 		add_action('wp_set_comment_status', array($plugin_public, 'send_prayer_comment_notification'));
 		add_action('comment_post', array($plugin_public, 'send_prayer_comment_notification'));
+		add_action('pre_get_posts', array($plugin_public, 'pre_get_posts'));
+
+		add_shortcode('dunham_prayer_wall', array($plugin_public, 'shortcode_dunham_prayer_wall'));
 	}
 
 	/**

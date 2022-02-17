@@ -65,3 +65,17 @@ function run_dunham_prayer_wall() {
 	new Dunham_Prayer_Wall();
 }
 run_dunham_prayer_wall();
+
+/**
+ * Logic to find our custom templates - check the theme first using locate_template(), and use our local version as fallback
+ * @param string $template
+ * @param array $args
+ * @since 1.0.0
+ */
+function dunham_prayer_wall_locate_template($template, $args) {
+	$located = locate_template('dunham-prayer-wall/'.$template, true, true, $args);
+	if (empty($located)) {
+		extract($args);
+		include_once(DUNHAM_PRAYER_WALL_PATH.'public/templates/'.$template);
+	}
+}
