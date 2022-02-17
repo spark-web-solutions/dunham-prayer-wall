@@ -116,6 +116,9 @@ class Dunham_Prayer_Wall_Public {
 	 */
 	public function filter_prayer_request_archive_args(WP_Query $query) {
 		$query->set('nopaging', true);
+		$query->set('orderby', 'meta_value_num');
+		$query->set('order', 'ASC');
+		$query->set('meta_key', '_prayers');
 	}
 
 	/**
