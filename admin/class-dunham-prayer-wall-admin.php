@@ -70,7 +70,7 @@ class Dunham_Prayer_Wall_Admin {
 	 * @since 1.0.0
 	 */
 	public function updates() {
-		new Dunham_Prayer_Wall_Updates(DUNHAM_PRAYER_WALL_PATH, 'spark-web-solutions', 'dunham-prayer-wall');
+		new Dunham_Prayer_Wall_Updates(DUNHAM_PRAYER_WALL_PATH.'dunham-prayer-wall.php', 'spark-web-solutions', 'dunham-prayer-wall');
 	}
 
 	/**
