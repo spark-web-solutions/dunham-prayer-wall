@@ -311,11 +311,22 @@ class Dunham_Prayer_Wall_Admin {
 				),
 				array(
 						'key' => 'dunham-prayer-wall-email-settings',
-						'title' => __('Email Settings', 'dunham-prayer-wall'),
+						'title' => __('Notification Settings', 'dunham-prayer-wall'),
 						'page' => 'dunham-prayer-wall-settings',
 						'wp_option' => 'dunham-prayer-wall-settings',
 						'callback' => false,
 						'fields' => array(
+								array(
+										'key' => 'dunham-prayer-wall-settings-send-follow-up-after',
+										'title' => __('Send Follow Up After (Days)', 'dunham-prayer-wall'),
+										'type' => 'number',
+										'instructions' => __('How many days after the request is published should the follow up summary email be sent? Set to zero to disable this notification. Note that changes to this setting will only affect requests published after the change is saved.', 'dunham-prayer-wall'),
+										'register_settings_args' => array(
+												'type' => 'integer',
+												'sanitize_callback' => 'absint',
+												'default' => 14,
+										),
+								),
 								array(
 										'key' => 'dunham-prayer-wall-settings-request-approved-email-subject',
 										'title' => __('Request Approved Email Subject', 'dunham-prayer-wall'),
@@ -533,11 +544,14 @@ You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
 			wp_mail($author_email, $this->get_setting('request-approved-email-subject'), wpautop($message));
 			remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
 
-			// Schedule a summary email in 2 weeks' time
-			$cron_args = array('request_id' => $post->ID);
-			if (!wp_next_scheduled('dunham_prayer_wall_send_summary_email', $cron_args)) {
-				$schedule = strtotime('+2 weeks', current_time('timestamp', true));
-				wp_schedule_single_event($schedule, 'dunham_prayer_wall_send_summary_email', $cron_args);
+			// Schedule a summary email based on configured schedule
+			$days = absint($this->get_setting('send-follow-up-after'));
+			if ($days > 0) {
+				$cron_args = array('request_id' => $post->ID);
+				if (!wp_next_scheduled('dunham_prayer_wall_send_summary_email', $cron_args)) {
+					$schedule = strtotime('+'.$days.' days', current_time('timestamp', true));
+					wp_schedule_single_event($schedule, 'dunham_prayer_wall_send_summary_email', $cron_args);
+				}
 			}
 		}
 	}
