@@ -127,7 +127,7 @@ class Dunham_Prayer_Wall_Public {
 	 * @since 1.0.0
 	 */
 	public function pre_get_posts($query) {
-		if (is_post_type_archive('prayerrequest')) {
+		if (!is_admin() && is_post_type_archive('prayerrequest')) {
 			$this->filter_prayer_request_archive_args($query);
 		}
 	}
