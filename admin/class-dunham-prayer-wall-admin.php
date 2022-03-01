@@ -317,17 +317,6 @@ class Dunham_Prayer_Wall_Admin {
 						'callback' => false,
 						'fields' => array(
 								array(
-										'key' => 'dunham-prayer-wall-settings-send-follow-up-after',
-										'title' => __('Send Follow Up After (Days)', 'dunham-prayer-wall'),
-										'type' => 'number',
-										'instructions' => __('How many days after the request is published should the follow up summary email be sent? Set to zero to disable this notification. Note that changes to this setting will only affect requests published after the change is saved.', 'dunham-prayer-wall'),
-										'register_settings_args' => array(
-												'type' => 'integer',
-												'sanitize_callback' => 'absint',
-												'default' => 14,
-										),
-								),
-								array(
 										'key' => 'dunham-prayer-wall-settings-request-approved-email-subject',
 										'title' => __('Request Approved Email Subject', 'dunham-prayer-wall'),
 										'type' => 'text',
@@ -395,6 +384,51 @@ I just wanted to let you know that {{prayer_name}} has just prayed for your pray
 We are believing that the Lord\'s answer will come just at the right time!
 
 You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
+										),
+								),
+								array(
+										'key' => 'dunham-prayer-wall-settings-send-follow-up-after',
+										'title' => __('Send Follow Up After (Days)', 'dunham-prayer-wall'),
+										'type' => 'number',
+										'instructions' => __('How many days after the request is published should the follow up summary email be sent? Set to zero to disable this notification. Note that changes to this setting will only affect requests published after the change is saved.', 'dunham-prayer-wall'),
+										'register_settings_args' => array(
+												'type' => 'integer',
+												'sanitize_callback' => 'absint',
+												'default' => 14,
+										),
+								),
+								array(
+										'key' => 'dunham-prayer-wall-settings-follow-up-email-subject',
+										'title' => __('Follow Up Email Subject', 'dunham-prayer-wall'),
+										'type' => 'text',
+										'instructions' => __('This is the subject of the email sent to provide a summary of the activity on the request to the submitter. It will be sent based on the above schedule.', 'dunham-prayer-wall'),
+										'args' => array(
+												'class' => 'large-text',
+										),
+										'register_settings_args' => array(
+												'type' => 'string',
+												'sanitize_callback' => 'sanitize_text_field',
+												'default' => 'Prayer Request Update',
+										),
+								),
+								array(
+										'key' => 'dunham-prayer-wall-settings-follow-up-email-content',
+										'title' => __('Follow Up Email Content', 'dunham-prayer-wall'),
+										'type' => 'wp-editor',
+										'instructions' => __('This is the body of the email sent to provide a summary of the activity on the request to the submitter. Available variables: <code>{{name}}</code> (recipient name); <code>{{prayer_count}}</code> (number of prayers); <code>{{comment_count}}</code> (number of comments); <code>{{request_url}}</code> (link to prayer request)', 'dunham-prayer-wall'),
+										'args' => array(
+												'class' => 'large-text',
+										),
+										'register_settings_args' => array(
+												'type' => 'string',
+												'sanitize_callback' => 'wp_kses_post',
+												'default' => __('Hi {{name}},
+
+Your prayer request has been prayed for {{prayer_count}} times, and there have been {{comment_count}} comments.
+
+You can see all comments on your request here: {{request_url}}.
+
+Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 										),
 								),
 						),
@@ -564,35 +598,14 @@ You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
 	public function send_summary_email($request_id) {
 		$post = get_post($request_id);
 		if ($post instanceof WP_Post && 'prayerrequest' == get_post_type($post) && 'publish' == get_post_status($post)) {
-			$requester = get_post_meta($post->ID, 'email', true);
-
-			$switched_locale = switch_to_locale(get_locale());
-
-			// The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-			// We want to reverse this for the plain text arena of emails.
-			$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
-
-			/* translators: Comment notification email subject. 1: Site title, 2: Post title. */
-			$subject = sprintf(__('[%1$s] Prayer Request Update: "%2$s"', 'dunham-prayer-wall'), $blogname, $post->post_title);
-
 			$comments = get_comment_count($post->ID);
-			/* translators: 1: Number of prayers tracked against the request. 2: Number of comments on the request. */
-			$notify_message = sprintf(__('In the past 2 weeks your prayer request has been prayed for %1$d times, and there have been %2$d comments.', 'dunham-prayer-wall'), get_post_meta($post->ID, '_prayers', true), $comments['approved']) . "\r\n";
-
-			/* translators: %s: Link to the prayer request */
-			$notify_message .= sprintf(__('You can see all comments on your request here: %s', 'dunham-prayer-wall'), get_the_permalink($post).'#comments') . "\r\n";
-
-			$wp_email = 'wordpress@' . preg_replace('#^www\.#', '', wp_parse_url(network_home_url(), PHP_URL_HOST));
-
-			$from = "From: \"$blogname\" <$wp_email>";
-
-			$message_headers = "$from\n" . 'Content-Type: text/plain; charset="' . get_option('blog_charset') . "\"\n";
-
-			wp_mail($requester, wp_specialchars_decode($subject), $notify_message, $message_headers);
-
-			if ($switched_locale) {
-				restore_previous_locale();
-			}
+			$author_email = get_post_meta($post->ID, 'email', true);
+			$author_name = get_post_meta($post->ID, 'name', true);
+			$message = $this->get_setting('follow-up-email-content');
+			$message = str_replace(array('{{name}}', '{{request_url}}', '{{prayer_count}}', '{{comment_count}}'), array($author_name, get_the_permalink($post), (int)get_post_meta($post->ID, '_prayers', true), $comments['approved']), $message);
+			add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+			wp_mail($author_email, $this->get_setting('follow-up-email-subject'), wpautop($message));
+			remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
 		}
 	}
 
