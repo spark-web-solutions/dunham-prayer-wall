@@ -107,7 +107,7 @@ class Dunham_Prayer_Wall_Admin {
 ?>
 <div class="wrap">
 	<h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-    <p>Export a CSV file containing names and email addresses for people who have commented on prayer requests.</p>
+    <p>Export a CSV file containing names and email addresses for people who have requested prayer or commented on prayer requests.</p>
     <form action="<?php echo add_query_arg(array('export' => 'csv')); ?>" method="POST">
         <table class="widefat striped">
             <tr>
@@ -155,25 +155,36 @@ class Dunham_Prayer_Wall_Admin {
 						),
 				),
 		);
+		$requests = get_posts($args);
 		$comments = get_comments($args);
 
-		if (count($comments) == 0) {
+		if (count($requests) == 0 && count($comments) == 0) {
 			wp_die('No data to export.');
 		}
 
 		$export_fields = array(
 				'Name',
 				'Email',
+				'Source',
 		);
 
 		$csv = array(
 				$export_fields,
 		);
 
+		foreach ($requests as $request) {
+			$csv[] = array(
+					'Name' => get_post_meta($request->ID, 'name', true),
+					'Email' => get_post_meta($request->ID, 'email', true),
+					'Source' => 'Prayer Request',
+			);
+		}
+
 		foreach ($comments as $comment) {
 			$csv[] = array(
 					'Name' => $comment->comment_author,
 					'Email' => $comment->comment_author_email,
+					'Source' => 'Comment',
 			);
 		}
 
