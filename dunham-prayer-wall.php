@@ -7,7 +7,7 @@
  * Plugin URI: https://dunhamandcompany.com/
  * Update URI: https://dunhamandcompany.com/
  * Description: Add a prayer wall to your site to allow people to submit and view prayer requests
- * Version: 1.0.1
+ * Version: 1.1.0
  * Author: Dunham + Company
  * Author URI: https://dunhamandcompany.com/
  * Text Domain: dunham-prayer-wall
@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 /**
  * Current plugin version.
  */
-define('DUNHAM_PRAYER_WALL_VERSION', '1.0.1');
+define('DUNHAM_PRAYER_WALL_VERSION', '1.1.0');
 define('DUNHAM_PRAYER_WALL_PATH', plugin_dir_path(__FILE__));
 define('DUNHAM_PRAYER_WALL_BASE', plugin_basename(__FILE__));
 
