@@ -328,10 +328,24 @@ class Dunham_Prayer_Wall_Admin {
 						'callback' => false,
 						'fields' => array(
 								array(
+										'key' => 'dunham-prayer-wall-settings-webhook-target',
+										'title' => __('Send Webhooks To', 'dunham-prayer-wall'),
+										'type' => 'url',
+										'instructions' => __('Enter a URL to send webhook notifications to. If a URL is entered, webhooks are sent for each of the notifications below, as well as when a prayer request or comment is approved.', 'dunham-prayer-wall'),
+										'args' => array(
+												'class' => 'large-text',
+										),
+										'register_settings_args' => array(
+												'type' => 'string',
+												'sanitize_callback' => 'esc_url_raw',
+												'default' => '',
+										),
+								),
+								array(
 										'key' => 'dunham-prayer-wall-settings-request-approved-email-subject',
 										'title' => __('Request Approved Email Subject', 'dunham-prayer-wall'),
 										'type' => 'text',
-										'instructions' => __('This is the subject of the email sent to notify a user that their prayer request has been approved.', 'dunham-prayer-wall'),
+										'instructions' => __('This is the subject of the email sent to notify a user that their prayer request has been approved. Leave blank to disable this email.', 'dunham-prayer-wall'),
 										'args' => array(
 												'class' => 'large-text',
 										),
@@ -367,7 +381,7 @@ May the Lord grant you the desires of your heart!', 'dunham-prayer-wall'),
 										'key' => 'dunham-prayer-wall-settings-prayer-received-email-subject',
 										'title' => __('Prayer Received Email Subject', 'dunham-prayer-wall'),
 										'type' => 'text',
-										'instructions' => __('This is the subject of the email sent to notify a user that someone "official" has prayed for their request.', 'dunham-prayer-wall'),
+										'instructions' => __('This is the subject of the email sent to notify a user that someone "official" has prayed for their request. Leave blank to disable this email.', 'dunham-prayer-wall'),
 										'args' => array(
 												'class' => 'large-text',
 										),
@@ -412,7 +426,7 @@ You can view your request here: {{request_url}}.', 'dunham-prayer-wall'),
 										'key' => 'dunham-prayer-wall-settings-follow-up-email-subject',
 										'title' => __('Follow Up Email Subject', 'dunham-prayer-wall'),
 										'type' => 'text',
-										'instructions' => __('This is the subject of the email sent to provide a summary of the activity on the request to the submitter. It will be sent based on the above schedule.', 'dunham-prayer-wall'),
+										'instructions' => __('This is the subject of the email sent to provide a summary of the activity on the request to the submitter. It will be sent based on the above schedule. Leave blank to disable this email.', 'dunham-prayer-wall'),
 										'args' => array(
 												'class' => 'large-text',
 										),
@@ -487,7 +501,7 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 	 * The callback to render settings fields
 	 * @since 1.0.0
 	 */
-	function render_section_fields($param) {
+	public function render_section_fields($param) {
 		$value = maybe_unserialize(get_option($param['key']));
 		if (empty($value)) {
 			$value = $param['register_settings_args']['default'];
@@ -583,11 +597,24 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 		if ('prayerrequest' == get_post_type($post) && 'draft' == $old_status && 'publish' == $new_status) {
 			$author_email = get_post_meta($post->ID, 'email', true);
 			$author_name = get_post_meta($post->ID, 'name', true);
-			$message = $this->get_setting('request-approved-email-content');
-			$message = str_replace(array('{{name}}', '{{request_url}}'), array($author_name, get_the_permalink($post)), $message);
-			add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
-			wp_mail($author_email, $this->get_setting('request-approved-email-subject'), wpautop($message));
-			remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+
+			// Email notification
+			$subject = $this->get_setting('request-approved-email-subject');
+			if (!empty($subject)) {
+				$message = $this->get_setting('request-approved-email-content');
+				$message = str_replace(array('{{name}}', '{{request_url}}'), array($author_name, get_the_permalink($post)), $message);
+				add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+				wp_mail($author_email, $subject, wpautop($message));
+				remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+			}
+
+			// Webhook notification
+			$data = array(
+					'name' => $author_name,
+					'email' => $author_email,
+					'request_url' => get_the_permalink($post),
+			);
+			$this->maybe_send_webhook('request-approved', $data);
 
 			// Schedule a summary email based on configured schedule
 			$days = absint($this->get_setting('send-follow-up-after'));
@@ -602,6 +629,63 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 	}
 
 	/**
+	 * Trigger notifications when comment is approved
+	 * @param string $new_status
+	 * @param string $old_status
+	 * @param WP_Comment $comment
+	 * @since 1.1.0
+	 */
+	public function comment_status_transition($new_status, $old_status, $comment) {
+		if ($new_status != $old_status && 'approved' == $new_status) {
+			$this->comment_notification($comment);
+		}
+	}
+
+	/**
+	 * Trigger notifications if comment is automatically approved when submitted
+	 * @param integer $id
+	 * @param integer|string $comment_approved
+	 * @param array $commentdata
+	 */
+	public function comment_added($id, $comment_approved, $commentdata) {
+		$comment = get_comment($id);
+		if ($comment instanceof WP_Comment) {
+			$post = get_post($comment->comment_post_ID);
+			if ('prayerrequest' == get_post_type($post)) {
+				$data = array(
+						'name' => $comment->comment_author,
+						'email' => $comment->comment_author_email,
+						'source' => 'comment',
+				);
+				$this->maybe_send_webhook('contact-details', $data);
+			}
+			if (1 == $comment_approved) {
+				$this->comment_notification($comment);
+			}
+		}
+	}
+
+	/**
+	 * Trigger webhook notification for new comment
+	 * @param WP_Comment $comment
+	 * @since 1.1.0
+	 */
+	private function comment_notification(WP_Comment $comment) {
+		$post = get_post($comment->comment_post_ID);
+		if ('prayerrequest' == get_post_type($post)) {
+			$author_email = get_post_meta($post->ID, 'email', true);
+			$author_name = get_post_meta($post->ID, 'name', true);
+			$data = array(
+					'name' => $author_name,
+					'email' => $author_email,
+					'request_url' => get_the_permalink($post),
+					'comment' => $comment->comment_content,
+			);
+			$this->maybe_send_webhook('comment-approved', $data);
+		}
+	}
+
+	/**
 	 * Send summary email to prayer requester. Triggered by a scheduled event - this function shouldn't ever be called manually.
 	 * @param integer $request_id
 	 * @since 1.0.0
@@ -612,11 +696,26 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 			$comments = get_comment_count($post->ID);
 			$author_email = get_post_meta($post->ID, 'email', true);
 			$author_name = get_post_meta($post->ID, 'name', true);
-			$message = $this->get_setting('follow-up-email-content');
-			$message = str_replace(array('{{name}}', '{{request_url}}', '{{prayer_count}}', '{{comment_count}}'), array($author_name, get_the_permalink($post), (int)get_post_meta($post->ID, '_prayers', true), $comments['approved']), $message);
-			add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
-			wp_mail($author_email, $this->get_setting('follow-up-email-subject'), wpautop($message));
-			remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+
+			// Email notification
+			$subject = $this->get_setting('follow-up-email-subject');
+			if (!empty($subject)) {
+				$message = $this->get_setting('follow-up-email-content');
+				$message = str_replace(array('{{name}}', '{{request_url}}', '{{prayer_count}}', '{{comment_count}}'), array($author_name, get_the_permalink($post), (int)get_post_meta($post->ID, '_prayers', true), $comments['approved']), $message);
+				add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+				wp_mail($author_email, $subject, wpautop($message));
+				remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+			}
+
+			// Webhook notification
+			$data = array(
+					'name' => $author_name,
+					'email' => $author_email,
+					'request_url' => get_the_permalink($post),
+					'prayer_count' => (int)get_post_meta($post->ID, '_prayers', true),
+					'comment_count' => $comments['approved'],
+			);
+			$this->maybe_send_webhook('follow-up', $data);
 		}
 	}
 
@@ -665,6 +764,13 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 		// Have to use wp_set_object_terms() rather than passing it through the tax_input parameter to wp_insert_post() otherwise terms won't be assigned if user doesn't have admin access
 		wp_set_object_terms($post_id, array((int)$request_type), 'prayercategory');
 
+		$data = array(
+				'name' => $name,
+				'email' => $email,
+				'source' => 'prayer-request',
+		);
+		$this->maybe_send_webhook('contact-details', $data);
+
 		wp_send_json(__('Success', 'dunham-prayer-wall'));
 	}
 
@@ -704,11 +810,25 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 			if (dunham_prayer_wall_is_official_prayer($current_user)) { // If someone official prayed, send an email to the original author
 				$author_email = get_post_meta($request->ID, 'email', true);
 				$author_name = get_post_meta($request->ID, 'name', true);
-				$message = $this->get_setting('prayer-received-email-content');
-				$message = str_replace(array('{{name}}', '{{request_url}}', '{{prayer_name}}'), array($author_name, get_the_permalink($request), $current_user->first_name), $message);
-				add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
-				wp_mail($author_email, $this->get_setting('prayer-received-email-subject'), wpautop($message));
-				remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+
+				// Email notification
+				$subject = $this->get_setting('prayer-received-email-subject');
+				if (!empty($subject)) {
+					$message = $this->get_setting('prayer-received-email-content');
+					$message = str_replace(array('{{name}}', '{{request_url}}', '{{prayer_name}}'), array($author_name, get_the_permalink($request), $current_user->first_name), $message);
+					add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+					wp_mail($author_email, $subject, wpautop($message));
+					remove_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'));
+				}
+
+				// Webhook notification
+				$data = array(
+						'name' => $author_name,
+						'email' => $author_email,
+						'request_url' => get_the_permalink($request),
+						'prayer_name' => $current_user->first_name,
+				);
+				$this->maybe_send_webhook('prayer-received', $data);
 			}
 		}
 
@@ -724,5 +844,23 @@ Our prayer team will continue praying with you.', 'dunham-prayer-wall'),
 		$sql = 'SELECT SUM(CAST(pm.meta_value AS UNSIGNED)) FROM '.$wpdb->postmeta.' pm INNER JOIN '.$wpdb->posts.' p ON (p.ID = pm.post_id AND pm.meta_key = "_prayers") WHERE p.post_type = "prayerrequest"';
 		$count = $wpdb->get_var($sql);
 		return $count;
+	}
+
+	/**
+	 * Send webhook if configured
+	 * @param string $event
+	 * @param array $data
+	 * @since 1.1.0
+	 */
+	private function maybe_send_webhook($event, array $data) {
+		$target_url = $this->get_setting('webhook-target');
+		if (!empty($target_url) && esc_url_raw($target_url) === $target_url) {
+			$data['event'] = $event;
+			$args = array(
+					'headers'   => array('Content-Type' => 'application/json; charset=utf-8'),
+					'body'      => json_encode($data),
+			);
+			wp_remote_post($target_url, $args);
+		}
 	}
 }

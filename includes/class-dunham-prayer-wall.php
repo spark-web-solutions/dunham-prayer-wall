@@ -144,6 +144,8 @@ class Dunham_Prayer_Wall {
         // Misc
         add_action('transition_post_status', array($plugin_admin, 'notify_submitter'), 10, 3);
         add_filter('plugin_action_links_'.DUNHAM_PRAYER_WALL_BASE,  array($plugin_admin, 'settings_link'));
+        add_action('transition_comment_status', array($plugin_admin, 'comment_status_transition'), 10, 3);
+        add_filter('comment_post',  array($plugin_admin, 'comment_added'), 10, 3);
 
         // Cron
         add_action('dunham_prayer_wall_send_summary_email', array($plugin_admin, 'send_summary_email'));
