@@ -1,5 +1,17 @@
 <?php
 /**
+ * Template for displaying the prayer wall. This file is used both for the archive and shortcode views.
+ * Override this by copying it to your theme and making the desired changes.
+ *
+ * @link https://sparkweb.com.au
+ * @since 1.0.0
+ * @version 1.0.0
+ *
+ * @package	Dunham_Prayer_Wall
+ * @subpackage Dunham_Prayer_Wall/public/templates
+ */
+
+/**
  * @var array $requests List of post objects passed through from code that calls this template
  */
 $prayer_count = Dunham_Prayer_Wall_Admin::count_prayers();

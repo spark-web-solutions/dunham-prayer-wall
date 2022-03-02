@@ -5,6 +5,7 @@
  *
  * @link https://sparkweb.com.au
  * @since 1.0.0
+ * @version 1.0.0
  *
  * @package	Dunham_Prayer_Wall
  * @subpackage Dunham_Prayer_Wall/public/templates
