@@ -2,8 +2,8 @@
 Contributors: markparnell
 Tags: dunham, prayer, prayer wall
 Requires at least: 3.0.1
-Tested up to: 5.9
-Stable tag: 1.1.0
+Tested up to: 6.3
+Stable tag: 1.1.1
 License: Copyright Dunham and Company. Unauthorised distribution of this software, with or without modifications is expressly prohibited.
 
 Add a prayer wall to your site to allow people to submit and view prayer requests.
@@ -14,6 +14,9 @@ Add a prayer wall to your site to allow people to submit and view prayer request
 1. Activate the plugin through the Plugins menu in WordPress
 
 == Changelog ==
+
+= 1.1.1 =
+* Added PHP 8 support
 
 = 1.1.0 =
 * Added ability to configure when follow up summary email should be sent
