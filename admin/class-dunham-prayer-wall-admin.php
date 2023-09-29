@@ -43,7 +43,7 @@ class Dunham_Prayer_Wall_Admin {
 	public function __construct($plugin_name, $version) {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-		if (isset($_GET['page']) && $_GET['page'] == dunham-prayer-wall-export && $_GET['export'] == 'csv') {
+		if (isset($_GET['page']) && $_GET['page'] == 'dunham-prayer-wall-export' && isset($_GET['export']) && $_GET['export'] == 'csv') {
 			add_action('init', array($this, 'export_csv'));
 		}
 	}
